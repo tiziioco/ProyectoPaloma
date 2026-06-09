@@ -1,0 +1,50 @@
+-- ========================================================
+-- 1. INSERTAR USUARIOS (Primero las personas)
+-- ========================================================
+-- Carlos (Cuidador - ID 1)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Carlos Gómez', 'carlos@email.com', 'hash_password_123', 'Cuidador', NULL);
+
+-- Ana (Paciente a cargo de Carlos - ID 2)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Ana Gómez', 'ana@email.com', 'hash_password_456', 'Paciente', 1);
+
+-- Bruno (Paciente Independiente - ID 3)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Bruno Díaz', 'bruno@email.com', 'hash_password_789', 'Independiente', NULL);
+
+
+-- ========================================================
+-- 2. INSERTAR MEDICAMENTOS (El botiquín de cada uno)
+-- ========================================================
+-- Medicamento de Ana (ID 1): Le quedan 10, avisa al llegar a 5
+INSERT INTO MEDICAMENTO (nombre_comercial, compuesto, presentacion, stock_actual, stock_minimo, fecha_vencimiento, fk_id_usuario) 
+VALUES ('Glucophage', 'Metformina 850mg', 'Pastillas', 10, 5, '2027-12-31', 2);
+
+-- Medicamento de Bruno (ID 2): Le quedan 4, avisa al llegar a 5 (Ya está en stock crítico)
+INSERT INTO MEDICAMENTO (nombre_comercial, compuesto, presentacion, stock_actual, stock_minimo, fecha_vencimiento, fk_id_usuario) 
+VALUES ('Actron', 'Ibuprofeno 600mg', 'Pastillas', 4, 5, '2026-08-15', 3);
+
+
+-- ========================================================
+-- 3. INSERTAR PROGRAMACIONES (El plan médico)
+-- ========================================================
+-- Plan para Ana (ID 1): 1 pastilla cada 12 horas
+INSERT INTO PROGRAMACION (dosis, frecuencia_horas, proxima_toma, estado, fk_id_medicamento) 
+VALUES (1, 12, '2026-06-10 08:00:00', 'Activo', 1);
+
+-- Plan para Bruno (ID 2): 1 pastilla cada 8 horas
+INSERT INTO PROGRAMACION (dosis, frecuencia_horas, proxima_toma, estado, fk_id_medicamento) 
+VALUES (1, 8, '2026-06-09 22:00:00', 'Activo', 2);
+
+
+-- ========================================================
+-- 4. INSERTAR HISTORIAL DE TOMAS (Simulación de uso)
+-- ========================================================
+-- Ana confirma su toma de la mañana (Afecta Plan ID 1)
+INSERT INTO HISTORIAL_TOMAS (fecha_hora_confirmada, estado, fk_id_prog) 
+VALUES ('2026-06-09 08:05:00', 'Tomada', 1);
+
+-- Bruno confirma su toma de la tarde (Afecta Plan ID 2)
+INSERT INTO HISTORIAL_TOMAS (fecha_hora_confirmada, estado, fk_id_prog) 
+VALUES ('2026-06-09 14:00:00', 'Tomada', 2);
