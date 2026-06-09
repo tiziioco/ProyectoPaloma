@@ -1,0 +1,95 @@
+-- 1. TABLA: USUARIO (Soporta Pacientes, Cuidadores e Independientes)
+CREATE TABLE USUARIO (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    contrasenia VARCHAR(255) NOT NULL,
+    rol VARCHAR(20) NOT NULL, -- Ejemplo: 'Paciente', 'Cuidador', 'Independiente'
+    id_superior INT NULL,     -- El truco: FK que apunta al ID del cuidador
+    FOREIGN KEY (id_superior) REFERENCES USUARIO(id_usuario) ON DELETE SET NULL
+);
+
+-- 2. TABLA: MEDICAMENTO (El inventario del botiquín)
+CREATE TABLE MEDICAMENTO (
+    id_medicamento INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_comercial VARCHAR(100) NOT NULL,
+    compuesto VARCHAR(100),
+    presentacion VARCHAR(50) NOT NULL, -- Ejemplo: 'Pastillas', 'Jarabe', 'Gotas'
+    stock_actual INT NOT NULL,         -- Unidades disponibles hoy
+    stock_minimo INT NOT NULL,         -- Umbral para disparar la alerta
+    fecha_vencimiento DATE,
+    fk_id_usuario INT NOT NULL,        -- A qué paciente le pertenece
+    FOREIGN KEY (fk_id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+);
+
+-- 3. TABLA: PROGRAMACION (El plan de tomas médicas)
+CREATE TABLE PROGRAMACION (
+    id_prog INT AUTO_INCREMENT PRIMARY KEY,
+    dosis INT NOT NULL,               -- Cantidad a tomar (ej: 1 o 2)
+    frecuencia_horas INT NOT NULL,    -- Cada cuántas horas (ej: 8, 12, 24)
+    proxima_toma DATETIME NOT NULL,   -- Fecha y hora de la siguiente dosis
+    estado VARCHAR(20) DEFAULT 'Activo', -- 'Activo' o 'Finalizado'
+    fk_id_medicamento INT NOT NULL,
+    FOREIGN KEY (fk_id_medicamento) REFERENCES MEDICAMENTO(id_medicamento) ON DELETE CASCADE
+);
+
+-- 4. TABLA: HISTORIAL_TOMAS (Registro para estadísticas y adherencia)
+CREATE TABLE HISTORIAL_TOMAS (
+    id_registro INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora_confirmada DATETIME NOT NULL,
+    estado VARCHAR(20) NOT NULL,      -- Ejemplo: 'Tomada', 'Omitida'
+    fk_id_prog INT NOT NULL,
+    FOREIGN KEY (fk_id_prog) REFERENCES PROGRAMACION(id_prog) ON DELETE CASCADE
+);
+
+-- ========================================================
+-- 1. INSERTAR USUARIOS (Primero las personas)
+-- ========================================================
+-- Carlos (Cuidador - ID 1)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Carlos Gómez', 'carlos@email.com', 'hash_password_123', 'Cuidador', NULL);
+
+-- Ana (Paciente a cargo de Carlos - ID 2)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Ana Gómez', 'ana@email.com', 'hash_password_456', 'Paciente', 1);
+
+-- Bruno (Paciente Independiente - ID 3)
+INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) 
+VALUES ('Bruno Díaz', 'bruno@email.com', 'hash_password_789', 'Independiente', NULL);
+
+
+-- ========================================================
+-- 2. INSERTAR MEDICAMENTOS (El botiquín de cada uno)
+-- ========================================================
+-- Medicamento de Ana (ID 1): Le quedan 10, avisa al llegar a 5
+INSERT INTO MEDICAMENTO (nombre_comercial, compuesto, presentacion, stock_actual, stock_minimo, fecha_vencimiento, fk_id_usuario) 
+VALUES ('Glucophage', 'Metformina 850mg', 'Pastillas', 10, 5, '2027-12-31', 2);
+
+-- Medicamento de Bruno (ID 2): Le quedan 4, avisa al llegar a 5 (Ya está en stock crítico)
+INSERT INTO MEDICAMENTO (nombre_comercial, compuesto, presentacion, stock_actual, stock_minimo, fecha_vencimiento, fk_id_usuario) 
+VALUES ('Actron', 'Ibuprofeno 600mg', 'Pastillas', 4, 5, '2026-08-15', 3);
+
+
+-- ========================================================
+-- 3. INSERTAR PROGRAMACIONES (El plan médico)
+-- ========================================================
+-- Plan para Ana (ID 1): 1 pastilla cada 12 horas
+INSERT INTO PROGRAMACION (dosis, frecuencia_horas, proxima_toma, estado, fk_id_medicamento) 
+VALUES (1, 12, '2026-06-10 08:00:00', 'Activo', 1);
+
+-- Plan para Bruno (ID 2): 1 pastilla cada 8 horas
+INSERT INTO PROGRAMACION (dosis, frecuencia_horas, proxima_toma, estado, fk_id_medicamento) 
+VALUES (1, 8, '2026-06-09 22:00:00', 'Activo', 2);
+
+
+-- ========================================================
+-- 4. INSERTAR HISTORIAL DE TOMAS (Simulación de uso)
+-- ========================================================
+-- Ana confirma su toma de la mañana (Afecta Plan ID 1)
+INSERT INTO HISTORIAL_TOMAS (fecha_hora_confirmada, estado, fk_id_prog) 
+VALUES ('2026-06-09 08:05:00', 'Tomada', 1);
+
+-- Bruno confirma su toma de la tarde (Afecta Plan ID 2)
+INSERT INTO HISTORIAL_TOMAS (fecha_hora_confirmada, estado, fk_id_prog) 
+VALUES ('2026-06-09 14:00:00', 'Tomada', 2);
+
