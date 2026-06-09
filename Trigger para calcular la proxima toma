@@ -1,0 +1,16 @@
+USE medstock_db;
+
+DELIMITER //
+
+CREATE TRIGGER calcular_proxima_toma
+AFTER INSERT ON HISTORIAL_TOMAS
+FOR EACH ROW
+BEGIN
+    UPDATE PROGRAMACION P
+    SET P.proxima_toma = DATE_ADD(NEW.fecha_hora_confirmada, INTERVAL P.frecuencia_horas HOUR)
+    WHERE P.id_prog = NEW.fk_id_prog;
+END //
+
+DELIMITER ;
+
+SELECT id_prog, proxima_toma FROM PROGRAMACION WHERE id_prog = 1;
