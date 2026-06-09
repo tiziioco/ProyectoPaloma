@@ -1,0 +1,21 @@
+USE medstock_db;
+
+DELIMITER //
+
+CREATE TRIGGER actualizar_stock_despues_de_toma
+AFTER INSERT ON HISTORIAL_TOMAS
+FOR EACH ROW
+BEGIN
+    -- Solo resta del inventario si el estado es 'Tomada'
+    IF NEW.estado = 'Tomada' THEN
+        UPDATE MEDICAMENTO M
+        JOIN PROGRAMACION P ON M.id_medicamento = P.fk_id_medicamento
+        SET M.stock_actual = M.stock_actual - P.dosis
+        WHERE P.id_prog = NEW.fk_id_prog;
+    END IF;
+END //
+
+DELIMITER ;
+
+
+SELECT nombre_comercial, stock_actual FROM MEDICAMENTO WHERE id_medicamento = 1;
