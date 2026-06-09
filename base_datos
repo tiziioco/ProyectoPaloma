@@ -1,0 +1,43 @@
+-- 1. TABLA: USUARIO (Soporta Pacientes, Cuidadores e Independientes)
+CREATE TABLE USUARIO (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    contrasenia VARCHAR(255) NOT NULL,
+    rol VARCHAR(20) NOT NULL, -- Ejemplo: 'Paciente', 'Cuidador', 'Independiente'
+    id_superior INT NULL,     -- El truco: FK que apunta al ID del cuidador
+    FOREIGN KEY (id_superior) REFERENCES USUARIO(id_usuario) ON DELETE SET NULL
+);
+
+-- 2. TABLA: MEDICAMENTO (El inventario del botiquín)
+CREATE TABLE MEDICAMENTO (
+    id_medicamento INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_comercial VARCHAR(100) NOT NULL,
+    compuesto VARCHAR(100),
+    presentacion VARCHAR(50) NOT NULL, -- Ejemplo: 'Pastillas', 'Jarabe', 'Gotas'
+    stock_actual INT NOT NULL,         -- Unidades disponibles hoy
+    stock_minimo INT NOT NULL,         -- Umbral para disparar la alerta
+    fecha_vencimiento DATE,
+    fk_id_usuario INT NOT NULL,        -- A qué paciente le pertenece
+    FOREIGN KEY (fk_id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+);
+
+-- 3. TABLA: PROGRAMACION (El plan de tomas médicas)
+CREATE TABLE PROGRAMACION (
+    id_prog INT AUTO_INCREMENT PRIMARY KEY,
+    dosis INT NOT NULL,               -- Cantidad a tomar (ej: 1 o 2)
+    frecuencia_horas INT NOT NULL,    -- Cada cuántas horas (ej: 8, 12, 24)
+    proxima_toma DATETIME NOT NULL,   -- Fecha y hora de la siguiente dosis
+    estado VARCHAR(20) DEFAULT 'Activo', -- 'Activo' o 'Finalizado'
+    fk_id_medicamento INT NOT NULL,
+    FOREIGN KEY (fk_id_medicamento) REFERENCES MEDICAMENTO(id_medicamento) ON DELETE CASCADE
+);
+
+-- 4. TABLA: HISTORIAL_TOMAS (Registro para estadísticas y adherencia)
+CREATE TABLE HISTORIAL_TOMAS (
+    id_registro INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora_confirmada DATETIME NOT NULL,
+    estado VARCHAR(20) NOT NULL,      -- Ejemplo: 'Tomada', 'Omitida'
+    fk_id_prog INT NOT NULL,
+    FOREIGN KEY (fk_id_prog) REFERENCES PROGRAMACION(id_prog) ON DELETE CASCADE
+);
