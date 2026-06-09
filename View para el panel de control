@@ -1,0 +1,14 @@
+USE medstock_db;
+
+CREATE OR REPLACE VIEW vista_cumplimiento_pacientes AS
+SELECT 
+    U.nombre AS paciente,
+    M.nombre_comercial AS medicamento,
+    H.estado AS estado_toma,
+    H.fecha_hora_confirmada
+FROM HISTORIAL_TOMAS H
+JOIN PROGRAMACION P ON H.fk_id_prog = P.id_prog
+JOIN MEDICAMENTO M ON P.fk_id_medicamento = M.id_medicamento
+JOIN USUARIO U ON M.fk_id_usuario = U.id_usuario;
+
+SELECT * FROM vista_cumplimiento_pacientes;
