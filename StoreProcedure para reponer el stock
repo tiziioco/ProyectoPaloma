@@ -1,0 +1,23 @@
+USE medstock_db;
+
+
+DROP PROCEDURE IF EXISTS registrar_compra_medicamento;
+
+DELIMITER //
+
+CREATE PROCEDURE registrar_compra_medicamento(
+    IN p_id_medicamento INT,
+    IN p_cantidad_comprada INT,
+    IN p_nueva_fecha_vencimiento DATE
+)
+BEGIN
+    UPDATE MEDICAMENTO
+    SET stock_actual = stock_actual + p_cantidad_comprada,
+        fecha_vencimiento = p_nueva_fecha_vencimiento
+    WHERE id_medicamento = p_id_medicamento;
+END //
+
+DELIMITER ;
+
+
+CALL registrar_compra_medicamento(2, 20, '2027-06-09');
