@@ -41,3 +41,5 @@ CREATE TABLE HISTORIAL_TOMAS (
     fk_id_prog INT NOT NULL,
     FOREIGN KEY (fk_id_prog) REFERENCES PROGRAMACION(id_prog) ON DELETE CASCADE
 );
+ALTER TABLE `medicamento` ADD `horario` TIME NULL AFTER `fk_id_usuario`;
+
