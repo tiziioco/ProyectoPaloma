@@ -42,4 +42,9 @@ CREATE TABLE HISTORIAL_TOMAS (
     FOREIGN KEY (fk_id_prog) REFERENCES PROGRAMACION(id_prog) ON DELETE CASCADE
 );
 ALTER TABLE `medicamento` ADD `horario` TIME NULL AFTER `fk_id_usuario`;
+INSERT INTO `usuario` (`nombre`, `email`, `contrasenia`, `rol`, `id_superior`) VALUES
+('Sebastian Quintero', 'sebastian@medstock.com', '123456', 'Cuidador', NULL),
+('Leonel Tello', 'leonel@medstock.com', '123456', 'Cuidador', NULL),
+('Ian Vecchio', 'ian@medstock.com', '123456', 'Cuidador', NULL);
+
 
