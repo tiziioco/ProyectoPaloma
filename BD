@@ -1,14 +1,14 @@
--- 1. SELECCIONAR LA BASE DE DATOS
-CREATE DATABASE IF NOT EXISTS medstock_db;
-USE medstock_db;
+-- 1. SELECCIONAR LA BASE DE DATOS OFICIAL COMO MEDSTOCK
+CREATE DATABASE IF NOT EXISTS medstock;
+USE medstock;
 
--- 2. LIMPIAR TABLAS PREVIAS (Para evitar el Error 1050)
+-- 2. LIMPIAR TABLAS PREVIAS (Evita errores de duplicación)
 DROP TABLE IF EXISTS HISTORIAL_TOMAS;
 DROP TABLE IF EXISTS PROGRAMACION;
 DROP TABLE IF EXISTS MEDICAMENTO;
 DROP TABLE IF EXISTS USUARIO;
 
--- 3. CREACIÓN DE TABLAS
+-- 3. CREACIÓN DE TABLAS ORIGINALES IMPECABLES
 CREATE TABLE USUARIO (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -28,6 +28,7 @@ CREATE TABLE MEDICAMENTO (
     stock_minimo INT NOT NULL,         
     fecha_vencimiento DATE,
     fk_id_usuario INT NOT NULL,        
+    horario TIME NOT NULL, -- Columna clave para el cronómetro del abuelo
     FOREIGN KEY (fk_id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
 );
 
@@ -49,37 +50,12 @@ CREATE TABLE HISTORIAL_TOMAS (
     FOREIGN KEY (fk_id_prog) REFERENCES PROGRAMACION(id_prog) ON DELETE CASCADE
 );
 
-
-
-
--- 6. INSERCIÓN DE DATOS DE PRUEBA
-INSERT INTO USUARIO (nombre, email, contrasenia, rol, id_superior) VALUES 
-('Carlos Gómez', 'carlos@email.com', 'hash_password_123', 'Cuidador', NULL),
-('Ana Gómez', 'ana@email.com', 'hash_password_456', 'Paciente', 1),
-('Bruno Díaz', 'bruno@email.com', 'hash_password_789', 'Independiente', NULL);
-
-INSERT INTO MEDICAMENTO (nombre_comercial, compuesto, presentacion, stock_actual, stock_minimo, fecha_vencimiento, fk_id_usuario) VALUES 
-('Glucophage', 'Metformina 850mg', 'Pastillas', 10, 5, '2027-12-31', 2),
-('Actron', 'Ibuprofeno 600mg', 'Pastillas', 4, 5, '2026-08-15', 3);
-
-INSERT INTO PROGRAMACION (dosis, frecuencia_horas, proxima_toma, estado, fk_id_medicamento) VALUES 
-(1, 12, '2026-06-10 08:00:00', 'Activo', 1),
-(1, 8, '2026-06-09 22:00:00', 'Activo', 2);
-
-INSERT INTO HISTORIAL_TOMAS (fecha_hora_confirmada, estado, fk_id_prog) VALUES 
-('2026-06-09 08:05:00', 'Tomada', 1),
-('2026-06-09 14:00:00', 'Tomada', 2);
-
-
-USE medstock_db;
-
+-- 4. TRIGGERS ORIGINALES AUTOMÁTICOS AL 100%
 DELIMITER //
-
 CREATE TRIGGER actualizar_stock_despues_de_toma
 AFTER INSERT ON HISTORIAL_TOMAS
 FOR EACH ROW
 BEGIN
-    -- Solo resta del inventario si el estado es 'Tomada'
     IF NEW.estado = 'Tomada' THEN
         UPDATE MEDICAMENTO M
         JOIN PROGRAMACION P ON M.id_medicamento = P.fk_id_medicamento
@@ -87,16 +63,9 @@ BEGIN
         WHERE P.id_prog = NEW.fk_id_prog;
     END IF;
 END //
-
 DELIMITER ;
 
-
-
-
-USE medstock_db;
-
 DELIMITER //
-
 CREATE TRIGGER calcular_proxima_toma
 AFTER INSERT ON HISTORIAL_TOMAS
 FOR EACH ROW
@@ -105,11 +74,9 @@ BEGIN
     SET P.proxima_toma = DATE_ADD(NEW.fecha_hora_confirmada, INTERVAL P.frecuencia_horas HOUR)
     WHERE P.id_prog = NEW.fk_id_prog;
 END //
-
 DELIMITER ;
 
-USE medstock_db;
-
+-- 5. VISTAS Y PROCEDIMIENTOS ALMACENADOS
 CREATE OR REPLACE VIEW vista_cumplimiento_pacientes AS
 SELECT 
     U.nombre AS paciente,
@@ -121,13 +88,8 @@ JOIN PROGRAMACION P ON H.fk_id_prog = P.id_prog
 JOIN MEDICAMENTO M ON P.fk_id_medicamento = M.id_medicamento
 JOIN USUARIO U ON M.fk_id_usuario = U.id_usuario;
 
-USE medstock_db;
-
-
 DROP PROCEDURE IF EXISTS registrar_compra_medicamento;
-
 DELIMITER //
-
 CREATE PROCEDURE registrar_compra_medicamento(
     IN p_id_medicamento INT,
     IN p_cantidad_comprada INT,
@@ -139,5 +101,5 @@ BEGIN
         fecha_vencimiento = p_nueva_fecha_vencimiento
     WHERE id_medicamento = p_id_medicamento;
 END //
-
 DELIMITER ;
+
